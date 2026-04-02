@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}My History{% endblock %}
+{% block page_title %}Entry / Exit History{% endblock %}
+
+{% block content %}
+<div class="section-card">
+  <div class="card-header">
+    <h2 class="card-title">My Entry/Exit History</h2>
+  </div>
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Date & Time</th>
+          <th>Plate</th>
+          <th>Confidence</th>
+          <th>Status</th>
+          <th>Gate Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+        <tr>
+          <td class="text-sm text-muted">{{ log.timestamp.strftime('%d %b %Y, %I:%M %p') if log.timestamp else '-' }}</td>
+          <td><strong class="plate-tag">{{ log.normalized_plate or '-' }}</strong></td>
+          <td class="text-sm">{{ '%.1f'|format(log.confidence) }}%</td>
+          <td><span class="badge badge-{{ log.status }}">{{ log.status_label }}</span></td>
+          <td class="text-sm">{{ log.gate_action or '-' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="text-center text-muted">No entry history found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

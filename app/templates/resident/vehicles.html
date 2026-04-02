@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}My Vehicles{% endblock %}
+{% block page_title %}My Vehicles{% endblock %}
+
+{% block content %}
+<div class="resident-layout">
+  <div class="section-card mb-4">
+    <div class="card-header">
+      <h2 class="card-title">Register a Vehicle</h2>
+    </div>
+    <form method="POST" action="{{ url_for('resident.add_vehicle_route') }}" class="form-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Plate Number *</label>
+          <input type="text" name="plate_number" required placeholder="MH12AB1234"
+                 style="text-transform:uppercase" />
+        </div>
+        <div class="form-group">
+          <label>Vehicle Type</label>
+          <select name="vehicle_type">
+            <option value="car">Car</option>
+            <option value="bike">Bike</option>
+            <option value="truck">Truck</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Color</label>
+          <input type="text" name="color" placeholder="White" />
+        </div>
+        <div class="form-group">
+          <label>Brand / Model</label>
+          <input type="text" name="brand" placeholder="Honda City" />
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Submit Vehicle</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="section-card">
+    <div class="card-header">
+      <h2 class="card-title">My Registered Vehicles</h2>
+    </div>
+    {% if vehicles %}
+    <div class="vehicle-cards">
+      {% for v in vehicles %}
+      <div class="vehicle-card {{ 'vehicle-blacklisted' if v.blacklisted }}">
+        <div class="vehicle-plate">{{ v.plate_number }}</div>
+        <div class="vehicle-info">
+          <span>{{ v.vehicle_type.title() }}</span>
+          {% if v.color %}<span>· {{ v.color }}</span>{% endif %}
+          {% if v.brand %}<span>· {{ v.brand }}</span>{% endif %}
+        </div>
+        <div class="vehicle-status">
+          {% if v.blacklisted %}
+            <span class="badge badge-blocked">Blacklisted — Contact Admin</span>
+          {% elif v.authorized %}
+            <span class="badge badge-authorized">Authorized</span>
+          {% else %}
+            <span class="badge badge-unknown">Pending Review</span>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-muted text-center py-4">No vehicles registered yet.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

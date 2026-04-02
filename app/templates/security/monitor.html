@@ -1,0 +1,247 @@
+{% extends 'base.html' %}
+{% block title %}Live Monitor{% endblock %}
+{% block page_title %}Live Gate Monitor{% endblock %}
+
+{% block content %}
+<div class="monitor-layout">
+  <!-- Left column: Camera + ANPR -->
+  <div class="monitor-left">
+    <!-- Camera feed / upload -->
+    <div class="section-card camera-card">
+      <div class="card-header">
+        <h2 class="card-title">Camera Feed</h2>
+        <div class="camera-status {{ 'status-online' if gate.status else 'status-offline' }}">
+          <span class="status-dot"></span> 
+          Gate: <strong>{{ gate.status | upper }}</strong>
+        </div>
+      </div>
+
+      <div class="camera-view" id="cameraView">
+        <div class="camera-placeholder" id="cameraPlaceholder">
+          <span class="placeholder-icon">📷</span>
+          <p>Upload a frame to process ANPR</p>
+        </div>
+        <img id="capturedFrame" class="captured-img hidden" alt="Captured frame" />
+      </div>
+
+      <div class="camera-controls">
+        <label class="btn btn-secondary btn-block upload-label">
+          📂 Upload Frame
+          <input type="file" id="frameUpload" accept="image/*" class="hidden" />
+        </label>
+        <button class="btn btn-primary btn-block" id="processBtn" disabled>
+          🔍 Process ANPR
+        </button>
+      </div>
+    </div>
+
+    <!-- ANPR result -->
+    <div class="section-card anpr-result-card" id="anprResultCard" style="display:none">
+      <div class="card-header">
+        <h2 class="card-title">ANPR Result</h2>
+        <span class="result-timestamp" id="resultTime"></span>
+      </div>
+      <div class="anpr-result" id="anprResult">
+        <div class="plate-display">
+          <span class="plate-large" id="resultPlate">-</span>
+        </div>
+        <div class="result-meta">
+          <div class="meta-item">
+            <span class="meta-label">Confidence</span>
+            <span class="meta-value" id="resultConf">-</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Status</span>
+            <span class="badge" id="resultBadge">-</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Gate</span>
+            <span class="meta-value" id="resultGate">-</span>
+          </div>
+        </div>
+        <p class="result-message" id="resultMessage"></p>
+      </div>
+
+      <div class="manual-actions" id="manualActions">
+        <form method="POST" action="{{ url_for('security.gate_open') }}" class="inline-form">
+          <input type="hidden" name="log_id" id="manualLogId" value="" />
+          <input type="hidden" name="reason" value="Manual override by security" />
+          <button type="submit" class="btn btn-success">✅ Allow Entry</button>
+        </form>
+        <form method="POST" action="{{ url_for('security.manual_deny') }}" class="inline-form">
+          <input type="hidden" name="log_id" id="manualLogId2" value="" />
+          <input type="hidden" name="reason" value="Manually denied by security" />
+          <button type="submit" class="btn btn-danger">🚫 Deny Entry</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Gate control -->
+    <div class="section-card">
+      <div class="card-header">
+        <h2 class="card-title">Gate Control</h2>
+      </div>
+      <div class="gate-controls">
+        <form method="POST" action="{{ url_for('security.gate_open') }}">
+          <input type="hidden" name="reason" value="Manual gate open" />
+          <button type="submit" class="btn btn-success btn-lg gate-btn">🔓 Open Gate</button>
+        </form>
+        <form method="POST" action="{{ url_for('security.gate_close') }}">
+          <button type="submit" class="btn btn-danger btn-lg gate-btn">🔒 Close Gate</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right column: events and alerts -->
+  <div class="monitor-right">
+    <!-- Active alerts -->
+    {% if alerts %}
+    <div class="section-card alerts-panel">
+      <div class="card-header">
+        <h2 class="card-title">⚠️ Active Alerts</h2>
+        <span class="badge badge-blocked">{{ alerts|length }}</span>
+      </div>
+      <div class="alerts-list">
+        {% for a in alerts %}
+        <div class="alert-item severity-{{ a.severity }}">
+          <div class="alert-icon">{{ '🔴' if a.severity == 'high' or a.severity == 'critical' else '🟡' }}</div>
+          <div class="alert-body">
+            <strong>{{ a.related_plate or 'System' }}</strong>
+            <p>{{ a.message }}</p>
+            <span class="text-muted text-xs">{{ a.created_at.strftime('%H:%M') }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Recent events -->
+    <div class="section-card">
+      <div class="card-header">
+        <h2 class="card-title">Recent Events</h2>
+        <button class="btn btn-xs btn-secondary" onclick="refreshEvents()">↻ Refresh</button>
+      </div>
+      <div class="events-list" id="eventsList">
+        {% for log in recent_logs %}
+        <div class="event-item">
+          <div class="event-time">{{ log.timestamp.strftime('%H:%M:%S') if log.timestamp else '-' }}</div>
+          <div class="event-plate plate-tag">{{ log.normalized_plate or '-' }}</div>
+          <span class="badge badge-{{ log.status }}">{{ log.status_label }}</span>
+          <span class="text-xs text-muted">{{ '%.0f'|format(log.confidence) }}%</span>
+        </div>
+        {% else %}
+        <p class="text-muted text-center">No events yet.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Quick incident log -->
+    <div class="section-card">
+      <div class="card-header">
+        <h2 class="card-title">Quick Incident Log</h2>
+      </div>
+      <form method="POST" action="{{ url_for('security.log_incident') }}" class="form-body">
+        <div class="form-group">
+          <label>Plate (optional)</label>
+          <input type="text" name="plate" placeholder="MH12AB1234" style="text-transform:uppercase" />
+        </div>
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea name="notes" rows="2" required placeholder="Describe the incident..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-warning btn-block">Log Incident</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const frameUpload = document.getElementById('frameUpload');
+const processBtn = document.getElementById('processBtn');
+const capturedFrame = document.getElementById('capturedFrame');
+const cameraPlaceholder = document.getElementById('cameraPlaceholder');
+const anprResultCard = document.getElementById('anprResultCard');
+let selectedFile = null;
+
+frameUpload.addEventListener('change', (e) => {
+  selectedFile = e.target.files[0];
+  if (!selectedFile) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    capturedFrame.src = ev.target.result;
+    capturedFrame.classList.remove('hidden');
+    cameraPlaceholder.classList.add('hidden');
+    processBtn.disabled = false;
+  };
+  reader.readAsDataURL(selectedFile);
+});
+
+processBtn.addEventListener('click', async () => {
+  if (!selectedFile) return;
+  processBtn.disabled = true;
+  processBtn.textContent = '⏳ Processing...';
+
+  const fd = new FormData();
+  fd.append('frame', selectedFile);
+
+  try {
+    const resp = await fetch('{{ url_for("security.process_frame") }}', {
+      method: 'POST', body: fd
+    });
+    const data = await resp.json();
+    showResult(data);
+  } catch (err) {
+    showResult({ success: false, error: err.toString() });
+  } finally {
+    processBtn.disabled = false;
+    processBtn.textContent = '🔍 Process ANPR';
+  }
+});
+
+function showResult(data) {
+  anprResultCard.style.display = 'block';
+  document.getElementById('resultTime').textContent = new Date().toLocaleTimeString();
+  if (!data.success) {
+    document.getElementById('resultPlate').textContent = 'ERROR';
+    document.getElementById('resultMessage').textContent = data.error || 'Processing failed';
+    document.getElementById('resultBadge').textContent = 'error';
+    document.getElementById('resultBadge').className = 'badge badge-blocked';
+    return;
+  }
+  document.getElementById('resultPlate').textContent = data.plate || '-';
+  document.getElementById('resultConf').textContent = data.confidence ? data.confidence.toFixed(1) + '%' : '-';
+  document.getElementById('resultBadge').textContent = (data.status || '').replace('_', ' ');
+  document.getElementById('resultBadge').className = 'badge badge-' + (data.status || 'unknown');
+  document.getElementById('resultGate').textContent = data.gate_action || 'none';
+  document.getElementById('resultMessage').textContent = data.message || '';
+  if (data.log_id) {
+    document.getElementById('manualLogId').value = data.log_id;
+    document.getElementById('manualLogId2').value = data.log_id;
+  }
+  refreshEvents();
+}
+
+function refreshEvents() {
+  fetch('{{ url_for("api.recent_events") }}')
+    .then(r => r.json())
+    .then(events => {
+      const list = document.getElementById('eventsList');
+      if (!events.length) { list.innerHTML = '<p class="text-muted text-center">No events yet.</p>'; return; }
+      list.innerHTML = events.map(e => `
+        <div class="event-item">
+          <div class="event-time">${e.timestamp}</div>
+          <div class="event-plate plate-tag">${e.plate}</div>
+          <span class="badge badge-${e.status}">${e.status_label}</span>
+          <span class="text-xs text-muted">${e.confidence}</span>
+        </div>
+      `).join('');
+    });
+}
+
+setInterval(refreshEvents, 10000);
+</script>
+{% endblock %}

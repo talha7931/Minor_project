@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}Alerts{% endblock %}
+{% block page_title %}System Alerts{% endblock %}
+
+{% block content %}
+<div class="section-card">
+  <div class="card-header">
+    <h2 class="card-title">All Alerts</h2>
+  </div>
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Type</th>
+          <th>Severity</th>
+          <th>Plate</th>
+          <th>Message</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for alert in alerts %}
+        <tr class="{{ 'row-inactive' if alert.resolved }}">
+          <td class="text-sm text-muted">{{ alert.created_at.strftime('%d %b %H:%M') }}</td>
+          <td class="text-sm">{{ alert.type.replace('_', ' ').title() }}</td>
+          <td>
+            <span class="badge severity-{{ alert.severity }}">{{ alert.severity.title() }}</span>
+          </td>
+          <td><strong class="plate-tag">{{ alert.related_plate or '-' }}</strong></td>
+          <td class="text-sm">{{ alert.message }}</td>
+          <td>
+            {% if alert.resolved %}
+              <span class="badge badge-authorized">Resolved</span>
+            {% else %}
+              <span class="badge badge-blocked">Active</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if not alert.resolved %}
+            <a href="{{ url_for('admin.resolve_alert_route', alert_id=alert.id) }}"
+               class="btn btn-xs btn-success">Resolve</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-center text-muted">No alerts found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

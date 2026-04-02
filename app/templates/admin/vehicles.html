@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% block title %}Vehicles{% endblock %}
+{% block page_title %}Registered Vehicles{% endblock %}
+
+{% block content %}
+<div class="section-card mb-4">
+  <div class="card-header">
+    <h2 class="card-title">Add Vehicle</h2>
+  </div>
+  <form method="POST" action="{{ url_for('admin.add_vehicle_route') }}" class="form-inline">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Resident</label>
+        <select name="resident_id" required>
+          <option value="">Select resident...</option>
+          {% for r in residents %}
+          <option value="{{ r.id }}">{{ r.user.name }} (Flat {{ r.flat_no }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Plate Number</label>
+        <input type="text" name="plate_number" required placeholder="MH12AB1234"
+               style="text-transform:uppercase" />
+      </div>
+      <div class="form-group">
+        <label>Type</label>
+        <select name="vehicle_type">
+          <option value="car">Car</option>
+          <option value="bike">Bike</option>
+          <option value="truck">Truck</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Color</label>
+        <input type="text" name="color" placeholder="White" />
+      </div>
+      <div class="form-group">
+        <label>Brand</label>
+        <input type="text" name="brand" placeholder="Honda" />
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Add Vehicle</button>
+    </div>
+  </form>
+</div>
+
+<div class="section-card">
+  <div class="card-header">
+    <h2 class="card-title">All Vehicles</h2>
+  </div>
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Plate</th>
+          <th>Type</th>
+          <th>Color / Brand</th>
+          <th>Resident</th>
+          <th>Flat</th>
+          <th>Status</th>
+          <th>Blacklist</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for v in vehicles %}
+        <tr class="{{ 'row-danger' if v.blacklisted }}">
+          <td><strong class="plate-tag">{{ v.plate_number }}</strong></td>
+          <td class="text-sm">{{ v.vehicle_type.title() }}</td>
+          <td class="text-sm text-muted">{{ v.color }} {{ v.brand }}</td>
+          <td>{{ v.resident.user.name }}</td>
+          <td class="text-sm">{{ v.resident.flat_no }}</td>
+          <td>
+            {% if v.blacklisted %}
+              <span class="badge badge-blocked">Blacklisted</span>
+            {% elif v.authorized %}
+              <span class="badge badge-authorized">Authorized</span>
+            {% else %}
+              <span class="badge badge-unknown">Unauthorized</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="{{ url_for('admin.toggle_vehicle_blacklist', vehicle_id=v.id) }}"
+               class="btn btn-xs {{ 'btn-success' if v.blacklisted else 'btn-danger' }}"
+               onclick="return confirm('Toggle blacklist status?')">
+              {{ 'Un-Blacklist' if v.blacklisted else 'Blacklist' }}
+            </a>
+          </td>
+          <td></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="text-center text-muted">No vehicles registered.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}Recent Events{% endblock %}
+{% block page_title %}Recent Events{% endblock %}
+
+{% block content %}
+<div class="two-col-layout">
+  <div class="section-card">
+    <div class="card-header">
+      <h2 class="card-title">Last 20 Entry Events</h2>
+    </div>
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Plate</th>
+            <th>Confidence</th>
+            <th>Status</th>
+            <th>Gate</th>
+            <th>Source</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in recent_logs %}
+          <tr>
+            <td class="text-sm text-muted">{{ log.timestamp.strftime('%d %b %H:%M:%S') if log.timestamp else '-' }}</td>
+            <td><strong class="plate-tag">{{ log.normalized_plate or '-' }}</strong></td>
+            <td class="text-sm">{{ '%.1f'|format(log.confidence) }}%</td>
+            <td><span class="badge badge-{{ log.status }}">{{ log.status_label }}</span></td>
+            <td class="text-sm">{{ log.gate_action or '-' }}</td>
+            <td class="text-sm text-muted">{{ log.source }}</td>
+            <td class="text-sm text-muted">{{ log.notes or '' }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="7" class="text-center text-muted">No events recorded.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section-card">
+    <div class="card-header">
+      <h2 class="card-title">Gate Actions</h2>
+    </div>
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr><th>Time</th><th>Action</th><th>Triggered By</th><th>Reason</th></tr>
+        </thead>
+        <tbody>
+          {% for ga in gate_actions %}
+          <tr>
+            <td class="text-sm text-muted">{{ ga.timestamp.strftime('%H:%M:%S') }}</td>
+            <td>
+              <span class="badge {{ 'badge-authorized' if ga.action == 'open' else 'badge-blocked' }}">
+                {{ ga.action.upper() }}
+              </span>
+            </td>
+            <td class="text-sm">{{ ga.triggered_by }}</td>
+            <td class="text-sm text-muted">{{ ga.reason or '-' }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="4" class="text-center text-muted">No gate actions yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

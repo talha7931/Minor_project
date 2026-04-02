@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}My Alerts{% endblock %}
+{% block page_title %}My Vehicle Alerts{% endblock %}
+
+{% block content %}
+<div class="section-card">
+  <div class="card-header">
+    <h2 class="card-title">Alerts for My Vehicles</h2>
+  </div>
+  {% if alerts %}
+  <div class="alerts-list-full">
+    {% for a in alerts %}
+    <div class="alert-row severity-{{ a.severity }}">
+      <div class="alert-sev-chip {{ a.severity }}">{{ a.severity.upper() }}</div>
+      <div class="alert-content">
+        <strong>{{ a.related_plate or 'System' }}</strong> —
+        {{ a.message }}
+        <span class="text-muted text-xs ml-2">{{ a.created_at.strftime('%d %b, %H:%M') }}</span>
+      </div>
+      <div class="alert-resolved">
+        {% if a.resolved %}
+          <span class="badge badge-authorized">Resolved</span>
+        {% else %}
+          <span class="badge badge-blocked">Active</span>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="text-muted text-center py-6">No alerts for your vehicles.</p>
+  {% endif %}
+</div>
+{% endblock %}

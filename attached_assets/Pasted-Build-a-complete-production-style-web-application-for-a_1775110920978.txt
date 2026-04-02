@@ -1,0 +1,317 @@
+Build a complete production-style web application for a residential society gate entry system using ANPR (Automatic Number Plate Recognition).
+
+Project context:
+- This project is for a society/colony gate entrance system using ANPR technology.
+- The app must be compatible with Raspberry Pi and Raspberry Pi Camera modules.
+- Use Raspberry Pi camera support through Picamera2/libcamera, not old legacy camera code.
+- The app should also run in development on a normal computer with a webcam or uploaded test images.
+- I am using Replit, so make the app easy to run there first, then portable to Raspberry Pi.
+- Keep the system practical for a college project, but make the architecture realistic and complete.
+
+Core goal:
+Create a full-stack ANPR gate management app that:
+1. Captures live frames from Raspberry Pi Camera or webcam.
+2. Detects the vehicle number plate.
+3. Runs OCR on the plate.
+4. Validates and formats the plate text.
+5. Checks the plate against an authorized residents/vehicles database.
+6. Logs every entry/exit event.
+7. Shows role-based dashboards.
+8. Simulates or controls gate open/close actions.
+9. Supports alerts for unauthorized vehicles.
+10. Works efficiently on Raspberry Pi, so keep the design lightweight and optimized.
+
+Important dashboard limit:
+- Do NOT create too many dashboards.
+- Maximum 3 dashboards only.
+- Use exactly these 3 dashboards:
+  1. Admin dashboard
+  2. Security dashboard
+  3. Resident dashboard
+
+Users and dashboard responsibilities:
+
+1) Admin dashboard:
+- For society committee/admin/management
+- Manage residents
+- Manage authorized vehicles
+- View all logs
+- Configure ANPR settings
+- Configure gate rules
+- Manage users and roles
+- View analytics, daily entries, denied attempts, camera health, and system status
+- Export logs as CSV
+- Review flagged OCR mismatches or low-confidence reads
+
+2) Security dashboard:
+- For gate guards/security staff
+- Live camera stream
+- Real-time ANPR results
+- Plate confidence score
+- Authorization result: authorized / visitor / blocked / unknown
+- Button to manually allow entry
+- Button to deny entry
+- Button to trigger gate open/close simulation
+- Quick incident logging
+- Show most recent 20 events
+- Show alerts for blacklisted or unknown vehicles
+- Designed for fast use with minimal clicks
+
+3) Resident dashboard:
+- For colony residents
+- Login to view their registered vehicles
+- Add vehicle request or update request
+- See own entry/exit history
+- Request temporary visitor pass
+- View visitor approvals and expiry
+- View alerts if their vehicle was denied or mismatched
+- No heavy analytics here; keep it simple
+
+Technology requirements:
+- Backend: Python with Flask
+- Frontend: HTML, CSS, JavaScript
+- Database: SQLite
+- ORM optional, but simple SQLAlchemy is preferred
+- Camera integration:
+  - Raspberry Pi mode: Picamera2/libcamera support
+  - Dev mode: webcam fallback or uploaded image/video
+- ANPR pipeline:
+  - Modular design
+  - plate detection module
+  - OCR module
+  - validation/post-processing module
+  - authorization module
+- Make the ANPR engine replaceable:
+  - initial version may use a simple/stub/mock detector and OCR pipeline
+  - architecture should allow plugging in YOLOv8 and EasyOCR later
+- Provide a clean service layer for:
+  - camera service
+  - ANPR service
+  - user/auth service
+  - vehicle service
+  - log service
+  - gate service
+  - alert service
+
+Replit compatibility:
+- App must run cleanly in Replit.
+- Use Flask app host 0.0.0.0 and port from environment if available, default 8080.
+- Avoid OS-specific hacks.
+- Keep installation simple with requirements.txt.
+- Add a README with clear setup steps for both Replit and Raspberry Pi.
+
+Raspberry Pi compatibility:
+- Design with Raspberry Pi 4 or Pi 5 in mind.
+- Camera code must use Picamera2/libcamera path for Raspberry Pi support.
+- Provide an abstraction so the app can switch between:
+  - Pi camera source
+  - USB webcam source
+  - uploaded file source
+- Add configuration flags such as:
+  - CAMERA_MODE=picamera2
+  - CAMERA_MODE=webcam
+  - CAMERA_MODE=upload
+- Keep CPU/memory usage reasonable.
+- Resize frames before detection.
+- Allow configurable frame skipping for performance.
+- Avoid unnecessarily heavy UI or frontend libraries.
+
+Authentication and roles:
+- Implement login/logout
+- Roles:
+  - admin
+  - security
+  - resident
+- Protect routes by role
+- Residents must only see their own data
+- Security should not access full admin settings
+- Admin has full control
+
+Suggested database models:
+- User
+- ResidentProfile
+- Vehicle
+- VisitorPass
+- EntryLog
+- Alert
+- CameraConfig
+- GateAction
+- SystemSetting
+
+Suggested fields:
+- User: id, name, email, password_hash, role, active, created_at
+- ResidentProfile: id, user_id, flat_no/house_no, phone
+- Vehicle: id, resident_id, plate_number, vehicle_type, color, brand, authorized, blacklisted, created_at
+- VisitorPass: id, resident_id, visitor_name, vehicle_plate, valid_from, valid_to, approved, notes
+- EntryLog: id, timestamp, plate_text, normalized_plate, confidence, snapshot_path, status, source, gate_action, matched_vehicle_id, notes
+- Alert: id, type, severity, message, related_plate, resolved, created_at
+- CameraConfig: id, source_type, resolution, fps, enabled
+- GateAction: id, timestamp, action, triggered_by, reason
+- SystemSetting: id, key, value
+
+Functional requirements:
+- Live stream page for security
+- Periodic frame capture from live stream
+- ANPR processing pipeline
+- Plate confidence and OCR confidence display
+- Plate normalization for Indian number plate style
+- Duplicate suppression so repeated reads in a few seconds do not spam logs
+- Gate action rules:
+  - authorized resident vehicle -> auto allow
+  - valid visitor pass -> allow
+  - blacklisted vehicle -> deny and alert
+  - unknown vehicle -> mark for manual review or security decision
+- Manual override actions for security
+- Snapshot saving for recognized events
+- Searchable logs
+- Filter logs by date, status, plate, resident, vehicle type
+- Export logs CSV
+- Visitor pass workflow
+- System status page within admin dashboard
+- Mock analytics cards:
+  - today entries
+  - today exits
+  - denied attempts
+  - active alerts
+  - online camera status
+
+UI/UX requirements:
+- This is a web app/dashboard, not a marketing site.
+- Keep the typography compact and practical.
+- Use a clean professional dashboard layout.
+- Use a sidebar for navigation on desktop.
+- On mobile, collapse sidebar into a simple menu.
+- Keep the app lightweight and readable.
+- Do NOT overload with too many pages or too many dashboard variants.
+- Maximum 3 role dashboards only.
+- Use a modern, minimal design with dark mode support.
+- Add status chips for Authorized, Visitor, Unknown, Blocked, Manual Review.
+- Make the security dashboard the fastest and most action-oriented screen.
+
+Navigation structure:
+- Shared login page
+- Shared base layout
+- Dashboard routing by role
+
+Admin sections:
+- Overview
+- Residents & Vehicles
+- Logs
+- Alerts
+- Settings
+
+Security sections:
+- Live Monitoring
+- Recent Events
+- Manual Gate Control
+
+Resident sections:
+- My Vehicles
+- My History
+- Visitor Passes
+
+Architecture expectations:
+- Use Flask Blueprints or a similarly clean modular structure
+- Separate folders/modules for:
+  - routes
+  - models
+  - services
+  - templates
+  - static
+  - utils
+- Use Jinja templates for server-rendered dashboards
+- Add a simple JSON API for live data updates if needed
+- Use fetch/AJAX for real-time event refresh on security screen
+- Keep code clean, modular, and documented
+
+Camera and processing design:
+- Implement a camera abstraction class:
+  - BaseCamera
+  - PiCameraSource
+  - WebcamSource
+  - UploadSource
+- Implement ANPR abstraction:
+  - PlateDetector
+  - OCRReader
+  - PlatePostProcessor
+  - AuthorizationEngine
+- For initial build, if full ANPR is too heavy, create a realistic mock mode:
+  - random/sample plate reads from test images/video
+  - then clearly isolate real inference methods for later upgrade
+- Add comments on where YOLOv8 and EasyOCR should be integrated later
+- Include sample frame processing pipeline:
+  - capture frame
+  - preprocess
+  - detect ROI
+  - OCR
+  - normalize
+  - validate
+  - authorize
+  - log event
+  - trigger gate result
+- Add performance options:
+  - frame_skip
+  - jpeg_quality
+  - processing_resolution
+  - duplicate_window_seconds
+
+Security and resilience:
+- Validate all form inputs
+- Hash passwords
+- Use CSRF protection if practical
+- Gracefully handle camera offline state
+- Gracefully handle OCR failure or low confidence
+- Provide fallback “manual review” state
+- Never crash if camera is not connected
+- Show helpful status messages in UI
+
+Deliverables I want in the generated project:
+1. Complete Flask app code
+2. Folder structure
+3. requirements.txt
+4. README.md
+5. .env.example
+6. Seed script for demo data
+7. SQLite initialization/migration script
+8. Sample templates for all 3 dashboards
+9. Mock/live stream integration path
+10. Clean comments showing where Raspberry Pi camera code and future YOLO/OCR code go
+
+Important design constraints:
+- Compatible with Raspberry Pi camera modules through Picamera2/libcamera
+- Replit-friendly
+- Lightweight enough to later deploy on Raspberry Pi
+- No more than 3 dashboards
+- The app should feel complete, not just a rough prototype
+
+Implementation preference:
+- Start by generating the full project structure first.
+- Then generate backend models and configuration.
+- Then authentication and role handling.
+- Then dashboard pages.
+- Then camera abstraction and mock/live stream support.
+- Then ANPR service stubs and processing flow.
+- Then logs, visitor pass, alerts, and gate control.
+- Then README and setup steps.
+- If any advanced part cannot be fully implemented in one pass, provide a clean working MVP with clearly marked upgrade points.
+
+Also include:
+- A seeded demo with:
+  - 1 admin user
+  - 1 security user
+  - 2 resident users
+  - several vehicles
+  - a few sample logs
+  - 1 blacklisted vehicle
+  - 1 active visitor pass
+- Give clear credentials for demo testing in README
+
+Coding quality:
+- Write clean, maintainable code
+- Use meaningful variable names
+- Keep modules small
+- Avoid monolithic files
+- Add docstrings for core services
+- Prefer practical simplicity over unnecessary complexity
+
+Now build the complete app.

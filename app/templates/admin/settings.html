@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}Settings{% endblock %}
+{% block page_title %}System Settings{% endblock %}
+
+{% block content %}
+<div class="settings-grid">
+  <!-- System Settings -->
+  <div class="section-card">
+    <div class="card-header">
+      <h2 class="card-title">ANPR & Gate Settings</h2>
+    </div>
+    <form method="POST" class="form-body">
+      <div class="form-group">
+        <label>ANPR Mode</label>
+        <select name="anpr_mode">
+          <option value="mock" {{ 'selected' if settings.get('anpr_mode','mock')=='mock' }}>Mock (demo)</option>
+          <option value="live" {{ 'selected' if settings.get('anpr_mode')=='live' }}>Live (real inference)</option>
+        </select>
+        <p class="field-hint">Mock mode uses sample plates. Live mode requires YOLOv8 + EasyOCR.</p>
+      </div>
+      <div class="form-group">
+        <label>Camera Mode</label>
+        <select name="camera_mode">
+          <option value="upload" {{ 'selected' if settings.get('camera_mode','upload')=='upload' }}>Upload (file input)</option>
+          <option value="webcam" {{ 'selected' if settings.get('camera_mode')=='webcam' }}>Webcam (USB)</option>
+          <option value="picamera2" {{ 'selected' if settings.get('camera_mode')=='picamera2' }}>Pi Camera (Picamera2)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Duplicate Window (seconds)</label>
+        <input type="number" name="duplicate_window_seconds"
+               value="{{ settings.get('duplicate_window_seconds', '10') }}" min="1" max="300" />
+        <p class="field-hint">Suppress repeated reads of the same plate within this window.</p>
+      </div>
+      <div class="form-group checkbox-group">
+        <label>
+          <input type="checkbox" name="auto_allow_authorized" value="true"
+                 {{ 'checked' if settings.get('auto_allow_authorized','true')=='true' }} />
+          Auto-open gate for authorized vehicles
+        </label>
+      </div>
+      <div class="form-group checkbox-group">
+        <label>
+          <input type="checkbox" name="auto_deny_blacklisted" value="true"
+                 {{ 'checked' if settings.get('auto_deny_blacklisted','true')=='true' }} />
+          Auto-deny and alert for blacklisted vehicles
+        </label>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Save Settings</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- All Users -->
+  <div class="section-card">
+    <div class="card-header">
+      <h2 class="card-title">All Users</h2>
+    </div>
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr><th>Name</th><th>Email</th><th>Role</th><th>Active</th></tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr>
+            <td>{{ u.name }}</td>
+            <td class="text-sm text-muted">{{ u.email }}</td>
+            <td><span class="role-badge role-{{ u.role }}">{{ u.role.title() }}</span></td>
+            <td>{{ '✅' if u.active else '❌' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

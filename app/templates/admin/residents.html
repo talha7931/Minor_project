@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}Residents{% endblock %}
+{% block page_title %}Residents & Users{% endblock %}
+
+{% block content %}
+<div class="section-card">
+  <div class="card-header">
+    <h2 class="card-title">All Residents</h2>
+    <a href="{{ url_for('admin.add_resident') }}" class="btn btn-primary btn-sm">+ Add Resident</a>
+  </div>
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Flat</th>
+          <th>Phone</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in users %}
+        <tr class="{{ 'row-inactive' if not user.active }}">
+          <td>{{ user.name }}</td>
+          <td class="text-muted text-sm">{{ user.email }}</td>
+          <td>{{ user.resident_profile.flat_no if user.resident_profile else '-' }}</td>
+          <td class="text-sm">{{ user.resident_profile.phone if user.resident_profile else '-' }}</td>
+          <td><span class="role-badge role-{{ user.role }}">{{ user.role.title() }}</span></td>
+          <td>
+            {% if user.active %}
+              <span class="badge badge-authorized">Active</span>
+            {% else %}
+              <span class="badge badge-blocked">Inactive</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="{{ url_for('admin.toggle_resident', user_id=user.id) }}"
+               class="btn btn-xs {{ 'btn-warning' if user.active else 'btn-success' }}"
+               onclick="return confirm('Toggle user status?')">
+              {{ 'Deactivate' if user.active else 'Activate' }}
+            </a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-center text-muted">No residents found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
