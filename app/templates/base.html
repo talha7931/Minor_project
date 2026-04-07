@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -14,10 +14,10 @@
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-brand">
-        <span class="brand-icon">🚗</span>
+        <span class="brand-icon" aria-hidden="true">GA</span>
         <span class="brand-name">GateANPR</span>
       </div>
-      <button class="sidebar-toggle-close" id="sidebarClose" aria-label="Close">✕</button>
+      <button class="sidebar-toggle-close" id="sidebarClose" aria-label="Close sidebar">Close</button>
     </div>
 
     <div class="sidebar-user">
@@ -32,55 +32,55 @@
       {% if current_user.is_admin() %}
       <p class="nav-section-label">Admin</p>
       <a href="{{ url_for('admin.overview') }}" class="nav-link {% if request.endpoint == 'admin.overview' %}active{% endif %}">
-        <span class="nav-icon">📊</span> Overview
+        <span class="nav-label">Overview</span>
       </a>
       <a href="{{ url_for('admin.residents') }}" class="nav-link {% if request.endpoint in ['admin.residents','admin.add_resident'] %}active{% endif %}">
-        <span class="nav-icon">👥</span> Residents
+        <span class="nav-label">Residents</span>
       </a>
       <a href="{{ url_for('admin.vehicles') }}" class="nav-link {% if request.endpoint == 'admin.vehicles' %}active{% endif %}">
-        <span class="nav-icon">🚘</span> Vehicles
+        <span class="nav-label">Vehicles</span>
       </a>
       <a href="{{ url_for('admin.logs') }}" class="nav-link {% if request.endpoint == 'admin.logs' %}active{% endif %}">
-        <span class="nav-icon">📋</span> Logs
+        <span class="nav-label">Logs</span>
       </a>
       <a href="{{ url_for('admin.alerts') }}" class="nav-link {% if request.endpoint == 'admin.alerts' %}active{% endif %}">
-        <span class="nav-icon">🔔</span> Alerts
+        <span class="nav-label">Alerts</span>
       </a>
       <a href="{{ url_for('admin.settings') }}" class="nav-link {% if request.endpoint == 'admin.settings' %}active{% endif %}">
-        <span class="nav-icon">⚙️</span> Settings
+        <span class="nav-label">Settings</span>
       </a>
       {% endif %}
 
       {% if current_user.is_security() %}
       <p class="nav-section-label">Security</p>
       <a href="{{ url_for('security.monitor') }}" class="nav-link {% if request.endpoint == 'security.monitor' %}active{% endif %}">
-        <span class="nav-icon">📷</span> Live Monitor
+        <span class="nav-label">Live Monitor</span>
       </a>
       <a href="{{ url_for('security.events') }}" class="nav-link {% if request.endpoint == 'security.events' %}active{% endif %}">
-        <span class="nav-icon">📋</span> Recent Events
+        <span class="nav-label">Recent Events</span>
       </a>
       {% endif %}
 
       {% if current_user.is_resident() %}
       <p class="nav-section-label">Resident</p>
       <a href="{{ url_for('resident.my_vehicles') }}" class="nav-link {% if request.endpoint == 'resident.my_vehicles' %}active{% endif %}">
-        <span class="nav-icon">🚗</span> My Vehicles
+        <span class="nav-label">My Vehicles</span>
       </a>
       <a href="{{ url_for('resident.history') }}" class="nav-link {% if request.endpoint == 'resident.history' %}active{% endif %}">
-        <span class="nav-icon">📜</span> My History
+        <span class="nav-label">Entry History</span>
       </a>
       <a href="{{ url_for('resident.visitor_passes') }}" class="nav-link {% if request.endpoint == 'resident.visitor_passes' %}active{% endif %}">
-        <span class="nav-icon">🎫</span> Visitor Passes
+        <span class="nav-label">Visitor Passes</span>
       </a>
       <a href="{{ url_for('resident.my_alerts') }}" class="nav-link {% if request.endpoint == 'resident.my_alerts' %}active{% endif %}">
-        <span class="nav-icon">⚠️</span> Alerts
+        <span class="nav-label">Security Alerts</span>
       </a>
       {% endif %}
     </nav>
 
     <div class="sidebar-footer">
       <a href="{{ url_for('auth.logout') }}" class="nav-link nav-logout">
-        <span class="nav-icon">🚪</span> Logout
+        <span class="nav-label">Logout</span>
       </a>
     </div>
   </aside>
@@ -88,24 +88,47 @@
   <!-- Main content -->
   <div class="main-wrapper">
     <header class="topbar">
-      <button class="sidebar-toggle-open" id="sidebarOpen" aria-label="Open sidebar">☰</button>
+      <button class="sidebar-toggle-open" id="sidebarOpen" aria-label="Open navigation">Menu</button>
       <h1 class="page-title">{% block page_title %}Dashboard{% endblock %}</h1>
       <div class="topbar-right">
         <span class="topbar-clock" id="topbarClock"></span>
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme" aria-pressed="false">
+          <span class="theme-icon" aria-hidden="true">T</span>
+          <span class="theme-toggle-text" id="themeToggleLabel">Light</span>
+        </button>
       </div>
     </header>
 
     <main class="content">
-      {% with messages = get_flashed_messages(with_categories=true) %}
-        {% for category, message in messages %}
-          <div class="alert alert-{{ category }}">{{ message }}</div>
-        {% endfor %}
-      {% endwith %}
+      <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}" role="status">{{ message }}</div>
+          {% endfor %}
+        {% endwith %}
+      </div>
       {% block content %}{% endblock %}
     </main>
   </div>
 </div>
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+{% if current_user.is_resident() %}
+<nav class="bottom-nav" aria-label="Resident navigation">
+  <a href="{{ url_for('resident.my_vehicles') }}" class="{% if request.endpoint == 'resident.my_vehicles' %}active{% endif %}">
+    My Vehicles
+  </a>
+  <a href="{{ url_for('resident.visitor_passes') }}" class="{% if request.endpoint == 'resident.visitor_passes' %}active{% endif %}">
+    Visitor Passes
+  </a>
+  <a href="{{ url_for('resident.history') }}" class="{% if request.endpoint == 'resident.history' %}active{% endif %}">
+    Entry History
+  </a>
+  <a href="{{ url_for('resident.my_alerts') }}" class="{% if request.endpoint == 'resident.my_alerts' %}active{% endif %}">
+    Alerts
+  </a>
+</nav>
+{% endif %}
 
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 {% block extra_js %}{% endblock %}

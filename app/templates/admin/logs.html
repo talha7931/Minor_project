@@ -7,24 +7,24 @@
   <form method="GET" class="filter-form">
     <div class="form-row">
       <div class="form-group">
-        <label>Plate Number</label>
+        <label>Plate number</label>
         <input type="text" name="plate" value="{{ plate }}" placeholder="Search plate..." />
       </div>
       <div class="form-group">
         <label>Status</label>
         <select name="status">
-          <option value="">All Statuses</option>
+          <option value="">All statuses</option>
           {% for s in ['authorized','visitor','blocked','unknown','manual_allow','manual_deny'] %}
           <option value="{{ s }}" {{ 'selected' if status == s }}>{{ s.replace('_',' ').title() }}</option>
           {% endfor %}
         </select>
       </div>
       <div class="form-group">
-        <label>From Date</label>
+        <label>From date</label>
         <input type="date" name="date_from" value="{{ date_from }}" />
       </div>
       <div class="form-group">
-        <label>To Date</label>
+        <label>To date</label>
         <input type="date" name="date_to" value="{{ date_to }}" />
       </div>
       <div class="form-group align-end">
@@ -37,8 +37,11 @@
 
 <div class="section-card">
   <div class="card-header">
-    <h2 class="card-title">{{ total }} Records</h2>
-    <a href="{{ url_for('admin.export_logs', plate=plate, status=status) }}" class="btn btn-sm btn-secondary">⬇ Export CSV</a>
+    <div>
+      <h2 class="card-title">{{ total }} records</h2>
+      <div class="card-subtitle">Filter by plate, time, and status. Export when needed.</div>
+    </div>
+    <a href="{{ url_for('admin.export_logs', plate=plate, status=status) }}" class="btn btn-sm btn-secondary">Export CSV</a>
   </div>
   <div class="table-wrapper">
     <table class="data-table">
@@ -57,14 +60,14 @@
       <tbody>
         {% for log in logs %}
         <tr>
-          <td class="text-sm text-muted">{{ log.timestamp.strftime('%d %b %Y %H:%M:%S') if log.timestamp else '-' }}</td>
-          <td><strong class="plate-tag">{{ log.normalized_plate or '-' }}</strong></td>
-          <td class="text-sm text-muted">{{ log.plate_text or '-' }}</td>
-          <td class="text-sm">{{ '%.1f'|format(log.confidence) }}%</td>
-          <td><span class="badge badge-{{ log.status }}">{{ log.status_label }}</span></td>
-          <td class="text-sm">{{ log.gate_action or '-' }}</td>
-          <td class="text-sm text-muted">{{ log.source }}</td>
-          <td class="text-sm text-muted">{{ log.notes or '' }}</td>
+          <td data-label="Timestamp" class="text-sm text-muted">{{ log.timestamp.strftime('%d %b %Y %H:%M:%S') if log.timestamp else '-' }}</td>
+          <td data-label="Plate"><strong class="plate-tag">{{ log.normalized_plate or '-' }}</strong></td>
+          <td data-label="Raw OCR" class="text-sm text-muted">{{ log.plate_text or '-' }}</td>
+          <td data-label="Confidence" class="text-sm">{{ '%.1f'|format(log.confidence) }}%</td>
+          <td data-label="Status"><span class="badge badge-{{ log.status }}">{{ log.status_label }}</span></td>
+          <td data-label="Gate" class="text-sm">{{ log.gate_action or '-' }}</td>
+          <td data-label="Source" class="text-sm text-muted">{{ log.source }}</td>
+          <td data-label="Notes" class="text-sm text-muted">{{ log.notes or '' }}</td>
         </tr>
         {% else %}
         <tr><td colspan="8" class="text-center text-muted">No logs found.</td></tr>

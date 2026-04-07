@@ -5,12 +5,15 @@
 {% block content %}
 <div class="section-card mb-4">
   <div class="card-header">
-    <h2 class="card-title">Add Vehicle</h2>
+    <div>
+      <h2 class="card-title">Add vehicle</h2>
+      <div class="card-subtitle">Register a resident vehicle for gate authorization.</div>
+    </div>
   </div>
   <form method="POST" action="{{ url_for('admin.add_vehicle_route') }}" class="form-inline">
     <div class="form-row">
       <div class="form-group">
-        <label>Resident</label>
+        <label>Resident *</label>
         <select name="resident_id" required>
           <option value="">Select resident...</option>
           {% for r in residents %}
@@ -19,12 +22,12 @@
         </select>
       </div>
       <div class="form-group">
-        <label>Plate Number</label>
+        <label>Plate number *</label>
         <input type="text" name="plate_number" required placeholder="MH12AB1234"
                style="text-transform:uppercase" />
       </div>
       <div class="form-group">
-        <label>Type</label>
+        <label>Vehicle type</label>
         <select name="vehicle_type">
           <option value="car">Car</option>
           <option value="bike">Bike</option>
@@ -33,23 +36,26 @@
         </select>
       </div>
       <div class="form-group">
-        <label>Color</label>
+        <label>Color (optional)</label>
         <input type="text" name="color" placeholder="White" />
       </div>
       <div class="form-group">
-        <label>Brand</label>
+        <label>Brand / model (optional)</label>
         <input type="text" name="brand" placeholder="Honda" />
       </div>
     </div>
     <div class="form-actions">
-      <button type="submit" class="btn btn-primary">Add Vehicle</button>
+      <button type="submit" class="btn btn-primary">Add vehicle</button>
     </div>
   </form>
 </div>
 
 <div class="section-card">
   <div class="card-header">
-    <h2 class="card-title">All Vehicles</h2>
+    <div>
+      <h2 class="card-title">All vehicles</h2>
+      <div class="card-subtitle">Review authorization and blacklist status.</div>
+    </div>
   </div>
   <div class="table-wrapper">
     <table class="data-table">
@@ -68,12 +74,12 @@
       <tbody>
         {% for v in vehicles %}
         <tr class="{{ 'row-danger' if v.blacklisted }}">
-          <td><strong class="plate-tag">{{ v.plate_number }}</strong></td>
-          <td class="text-sm">{{ v.vehicle_type.title() }}</td>
-          <td class="text-sm text-muted">{{ v.color }} {{ v.brand }}</td>
-          <td>{{ v.resident.user.name }}</td>
-          <td class="text-sm">{{ v.resident.flat_no }}</td>
-          <td>
+          <td data-label="Plate"><strong class="plate-tag">{{ v.plate_number }}</strong></td>
+          <td data-label="Type" class="text-sm">{{ v.vehicle_type.title() }}</td>
+          <td data-label="Color / Brand" class="text-sm text-muted">{{ v.color }} {{ v.brand }}</td>
+          <td data-label="Resident">{{ v.resident.user.name }}</td>
+          <td data-label="Flat" class="text-sm">{{ v.resident.flat_no }}</td>
+          <td data-label="Status">
             {% if v.blacklisted %}
               <span class="badge badge-blocked">Blacklisted</span>
             {% elif v.authorized %}
@@ -82,14 +88,14 @@
               <span class="badge badge-unknown">Unauthorized</span>
             {% endif %}
           </td>
-          <td>
+          <td data-label="Blacklist">
             <a href="{{ url_for('admin.toggle_vehicle_blacklist', vehicle_id=v.id) }}"
                class="btn btn-xs {{ 'btn-success' if v.blacklisted else 'btn-danger' }}"
                onclick="return confirm('Toggle blacklist status?')">
               {{ 'Un-Blacklist' if v.blacklisted else 'Blacklist' }}
             </a>
           </td>
-          <td></td>
+          <td data-label="Actions"></td>
         </tr>
         {% else %}
         <tr><td colspan="8" class="text-center text-muted">No vehicles registered.</td></tr>

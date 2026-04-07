@@ -5,12 +5,12 @@
 <div class="login-page">
   <div class="login-card">
     <div class="login-brand">
-      <span class="brand-icon-lg">🚗</span>
+      <span class="brand-icon-lg" aria-hidden="true">GA</span>
       <h1>GateANPR</h1>
       <p>Society Gate Entry System</p>
     </div>
 
-    <form method="POST" action="{{ url_for('auth.login') }}" class="login-form">
+    <form method="POST" action="{{ url_for('auth.login') }}" class="login-form" aria-label="Login form">
       <div class="form-group">
         <label for="email">Email Address</label>
         <input type="email" id="email" name="email" required autocomplete="email"
@@ -21,11 +21,14 @@
         <input type="password" id="password" name="password" required
                autocomplete="current-password" placeholder="••••••••" />
       </div>
-      <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+      <button type="submit" class="btn btn-primary btn-block">Continue</button>
     </form>
 
     <div class="login-hints">
-      <p class="hint-title">Demo Credentials</p>
+      <p class="hint-title">Demo access (for testing)</p>
+      <p class="text-muted text-sm" style="margin-bottom: 10px;">
+        Use one set below to try Admin, Security, or Resident screens.
+      </p>
       <div class="hint-grid">
         <div class="hint-item">
           <span class="role-badge role-admin">Admin</span>

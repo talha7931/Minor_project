@@ -5,42 +5,42 @@
 {% block content %}
 <div class="stats-grid">
   <div class="stat-card">
-    <div class="stat-icon">🚗</div>
+    <div class="stat-badge" aria-hidden="true">EN</div>
     <div class="stat-body">
       <div class="stat-value">{{ stats.total }}</div>
       <div class="stat-label">Today's Entries</div>
     </div>
   </div>
   <div class="stat-card">
-    <div class="stat-icon success-icon">✅</div>
+    <div class="stat-badge" aria-hidden="true">OK</div>
     <div class="stat-body">
       <div class="stat-value">{{ stats.authorized }}</div>
       <div class="stat-label">Authorized Today</div>
     </div>
   </div>
   <div class="stat-card">
-    <div class="stat-icon danger-icon">🚫</div>
+    <div class="stat-badge" aria-hidden="true">DN</div>
     <div class="stat-body">
       <div class="stat-value">{{ stats.denied }}</div>
       <div class="stat-label">Denied Today</div>
     </div>
   </div>
   <div class="stat-card">
-    <div class="stat-icon warning-icon">🔔</div>
+    <div class="stat-badge" aria-hidden="true">AL</div>
     <div class="stat-body">
       <div class="stat-value">{{ alert_count }}</div>
       <div class="stat-label">Active Alerts</div>
     </div>
   </div>
   <div class="stat-card">
-    <div class="stat-icon">👥</div>
+    <div class="stat-badge" aria-hidden="true">RS</div>
     <div class="stat-body">
       <div class="stat-value">{{ total_residents }}</div>
       <div class="stat-label">Residents</div>
     </div>
   </div>
   <div class="stat-card">
-    <div class="stat-icon">🚘</div>
+    <div class="stat-badge" aria-hidden="true">VH</div>
     <div class="stat-body">
       <div class="stat-value">{{ total_vehicles }}</div>
       <div class="stat-label">Registered Vehicles</div>
@@ -68,18 +68,18 @@
       <tbody>
         {% for log in recent_logs %}
         <tr>
-          <td class="text-muted text-sm">{{ log.timestamp.strftime('%d %b %H:%M') if log.timestamp else '-' }}</td>
-          <td><strong class="plate-tag">{{ log.normalized_plate or log.plate_text or '-' }}</strong></td>
-          <td>
+          <td data-label="Time" class="text-muted text-sm">{{ log.timestamp.strftime('%d %b %H:%M') if log.timestamp else '-' }}</td>
+          <td data-label="Plate"><strong class="plate-tag">{{ log.normalized_plate or log.plate_text or '-' }}</strong></td>
+          <td data-label="Confidence">
             <span class="conf-bar">
               <span class="conf-fill conf-{{ 'high' if log.confidence >= 85 else ('mid' if log.confidence >= 60 else 'low') }}"
                     style="width:{{ [log.confidence, 100]|min }}%"></span>
             </span>
             <span class="text-sm">{{ '%.1f'|format(log.confidence) }}%</span>
           </td>
-          <td><span class="badge badge-{{ log.status }}">{{ log.status_label }}</span></td>
-          <td class="text-sm">{{ log.gate_action or '-' }}</td>
-          <td class="text-muted text-sm">{{ log.source }}</td>
+          <td data-label="Status"><span class="badge badge-{{ log.status }}">{{ log.status_label }}</span></td>
+          <td data-label="Gate" class="text-sm">{{ log.gate_action or '-' }}</td>
+          <td data-label="Source" class="text-muted text-sm">{{ log.source }}</td>
         </tr>
         {% else %}
         <tr><td colspan="6" class="text-center text-muted">No entries yet</td></tr>

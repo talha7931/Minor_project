@@ -6,7 +6,10 @@
 <div class="two-col-layout">
   <div class="section-card">
     <div class="card-header">
-      <h2 class="card-title">Last 20 Entry Events</h2>
+      <div>
+        <h2 class="card-title">Recent gate events</h2>
+        <div class="card-subtitle">Latest detections and decisions from the gate.</div>
+      </div>
     </div>
     <div class="table-wrapper">
       <table class="data-table">
@@ -16,7 +19,7 @@
             <th>Plate</th>
             <th>Confidence</th>
             <th>Status</th>
-            <th>Gate</th>
+            <th>Gate action</th>
             <th>Source</th>
             <th>Notes</th>
           </tr>
@@ -24,13 +27,13 @@
         <tbody>
           {% for log in recent_logs %}
           <tr>
-            <td class="text-sm text-muted">{{ log.timestamp.strftime('%d %b %H:%M:%S') if log.timestamp else '-' }}</td>
-            <td><strong class="plate-tag">{{ log.normalized_plate or '-' }}</strong></td>
-            <td class="text-sm">{{ '%.1f'|format(log.confidence) }}%</td>
-            <td><span class="badge badge-{{ log.status }}">{{ log.status_label }}</span></td>
-            <td class="text-sm">{{ log.gate_action or '-' }}</td>
-            <td class="text-sm text-muted">{{ log.source }}</td>
-            <td class="text-sm text-muted">{{ log.notes or '' }}</td>
+            <td data-label="Time" class="text-sm text-muted">{{ log.timestamp.strftime('%d %b %H:%M:%S') if log.timestamp else '-' }}</td>
+            <td data-label="Plate"><strong class="plate-tag">{{ log.normalized_plate or '-' }}</strong></td>
+            <td data-label="Confidence" class="text-sm">{{ '%.1f'|format(log.confidence) }}%</td>
+            <td data-label="Status"><span class="badge badge-{{ log.status }}">{{ log.status_label }}</span></td>
+            <td data-label="Gate action" class="text-sm">{{ log.gate_action or '-' }}</td>
+            <td data-label="Source" class="text-sm text-muted">{{ log.source }}</td>
+            <td data-label="Notes" class="text-sm text-muted">{{ log.notes or '' }}</td>
           </tr>
           {% else %}
           <tr><td colspan="7" class="text-center text-muted">No events recorded.</td></tr>
@@ -42,7 +45,10 @@
 
   <div class="section-card">
     <div class="card-header">
-      <h2 class="card-title">Gate Actions</h2>
+      <div>
+        <h2 class="card-title">Manual gate actions</h2>
+        <div class="card-subtitle">Who triggered open/close actions and why.</div>
+      </div>
     </div>
     <div class="table-wrapper">
       <table class="data-table">
@@ -52,14 +58,14 @@
         <tbody>
           {% for ga in gate_actions %}
           <tr>
-            <td class="text-sm text-muted">{{ ga.timestamp.strftime('%H:%M:%S') }}</td>
-            <td>
+            <td data-label="Time" class="text-sm text-muted">{{ ga.timestamp.strftime('%H:%M:%S') }}</td>
+            <td data-label="Action">
               <span class="badge {{ 'badge-authorized' if ga.action == 'open' else 'badge-blocked' }}">
                 {{ ga.action.upper() }}
               </span>
             </td>
-            <td class="text-sm">{{ ga.triggered_by }}</td>
-            <td class="text-sm text-muted">{{ ga.reason or '-' }}</td>
+            <td data-label="Triggered by" class="text-sm">{{ ga.triggered_by }}</td>
+            <td data-label="Reason" class="text-sm text-muted">{{ ga.reason or '-' }}</td>
           </tr>
           {% else %}
           <tr><td colspan="4" class="text-center text-muted">No gate actions yet.</td></tr>

@@ -6,17 +6,20 @@
 <div class="resident-layout">
   <div class="section-card mb-4">
     <div class="card-header">
-      <h2 class="card-title">Register a Vehicle</h2>
+      <div>
+        <h2 class="card-title">Add your vehicle</h2>
+        <div class="card-subtitle">Share your plate details. The society will review and confirm.</div>
+      </div>
     </div>
     <form method="POST" action="{{ url_for('resident.add_vehicle_route') }}" class="form-body">
       <div class="form-row">
         <div class="form-group">
-          <label>Plate Number *</label>
+          <label>Plate number *</label>
           <input type="text" name="plate_number" required placeholder="MH12AB1234"
                  style="text-transform:uppercase" />
         </div>
         <div class="form-group">
-          <label>Vehicle Type</label>
+          <label>Vehicle type</label>
           <select name="vehicle_type">
             <option value="car">Car</option>
             <option value="bike">Bike</option>
@@ -25,23 +28,26 @@
           </select>
         </div>
         <div class="form-group">
-          <label>Color</label>
+          <label>Color (optional)</label>
           <input type="text" name="color" placeholder="White" />
         </div>
         <div class="form-group">
-          <label>Brand / Model</label>
+          <label>Brand / model (optional)</label>
           <input type="text" name="brand" placeholder="Honda City" />
         </div>
       </div>
       <div class="form-actions">
-        <button type="submit" class="btn btn-primary">Submit Vehicle</button>
+        <button type="submit" class="btn btn-primary">Add vehicle</button>
       </div>
     </form>
   </div>
 
   <div class="section-card">
     <div class="card-header">
-      <h2 class="card-title">My Registered Vehicles</h2>
+      <div>
+        <h2 class="card-title">My vehicles</h2>
+        <div class="card-subtitle">Status updates show what the gate will do for this plate.</div>
+      </div>
     </div>
     {% if vehicles %}
     <div class="vehicle-cards">
@@ -55,18 +61,23 @@
         </div>
         <div class="vehicle-status">
           {% if v.blacklisted %}
-            <span class="badge badge-blocked">Blacklisted — Contact Admin</span>
+              <span class="badge badge-blocked">Blocked</span>
+              <div class="field-hint">Contact the society office for help.</div>
           {% elif v.authorized %}
-            <span class="badge badge-authorized">Authorized</span>
+              <span class="badge badge-authorized">Authorized</span>
           {% else %}
-            <span class="badge badge-unknown">Pending Review</span>
+              <span class="badge badge-unknown">Pending review</span>
+              <div class="field-hint">You will see the gate’s decision soon.</div>
           {% endif %}
         </div>
       </div>
       {% endfor %}
     </div>
     {% else %}
-    <p class="text-muted text-center py-4">No vehicles registered yet.</p>
+    <div class="empty-state">
+      <div class="empty-title">No vehicles yet</div>
+      <div class="text-muted">Add your first vehicle above to enable smooth entry.</div>
+    </div>
     {% endif %}
   </div>
 </div>

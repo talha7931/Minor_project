@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,11 +7,20 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
 </head>
 <body>
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% for category, message in messages %}
-      <div class="alert alert-{{ category }} standalone-alert">{{ message }}</div>
-    {% endfor %}
-  {% endwith %}
+  <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}" role="status">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+  </div>
+
+  <div style="position: fixed; top: 16px; right: 16px; z-index: 1201;">
+    <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme" aria-pressed="false">
+      <span class="theme-icon" aria-hidden="true">T</span>
+      <span class="theme-toggle-text" id="themeToggleLabel">Light</span>
+    </button>
+  </div>
   {% block content %}{% endblock %}
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>

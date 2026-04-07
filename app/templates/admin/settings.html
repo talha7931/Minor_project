@@ -7,11 +7,14 @@
   <!-- System Settings -->
   <div class="section-card">
     <div class="card-header">
-      <h2 class="card-title">ANPR & Gate Settings</h2>
+      <div>
+        <h2 class="card-title">ANPR and gate settings</h2>
+        <div class="card-subtitle">Keep defaults for stable daily operation.</div>
+      </div>
     </div>
     <form method="POST" class="form-body">
       <div class="form-group">
-        <label>ANPR Mode</label>
+        <label>ANPR mode</label>
         <select name="anpr_mode">
           <option value="mock" {{ 'selected' if settings.get('anpr_mode','mock')=='mock' }}>Mock (demo)</option>
           <option value="live" {{ 'selected' if settings.get('anpr_mode')=='live' }}>Live (real inference)</option>
@@ -19,7 +22,7 @@
         <p class="field-hint">Mock mode uses sample plates. Live mode requires YOLOv8 + EasyOCR.</p>
       </div>
       <div class="form-group">
-        <label>Camera Mode</label>
+        <label>Camera mode</label>
         <select name="camera_mode">
           <option value="upload" {{ 'selected' if settings.get('camera_mode','upload')=='upload' }}>Upload (file input)</option>
           <option value="webcam" {{ 'selected' if settings.get('camera_mode')=='webcam' }}>Webcam (USB)</option>
@@ -27,7 +30,7 @@
         </select>
       </div>
       <div class="form-group">
-        <label>Duplicate Window (seconds)</label>
+        <label>Duplicate window (seconds)</label>
         <input type="number" name="duplicate_window_seconds"
                value="{{ settings.get('duplicate_window_seconds', '10') }}" min="1" max="300" />
         <p class="field-hint">Suppress repeated reads of the same plate within this window.</p>
@@ -55,7 +58,10 @@
   <!-- All Users -->
   <div class="section-card">
     <div class="card-header">
-      <h2 class="card-title">All Users</h2>
+      <div>
+        <h2 class="card-title">All users</h2>
+        <div class="card-subtitle">Quick reference for roles and account status.</div>
+      </div>
     </div>
     <div class="table-wrapper">
       <table class="data-table">
@@ -65,10 +71,16 @@
         <tbody>
           {% for u in users %}
           <tr>
-            <td>{{ u.name }}</td>
-            <td class="text-sm text-muted">{{ u.email }}</td>
-            <td><span class="role-badge role-{{ u.role }}">{{ u.role.title() }}</span></td>
-            <td>{{ '✅' if u.active else '❌' }}</td>
+            <td data-label="Name">{{ u.name }}</td>
+            <td data-label="Email" class="text-sm text-muted">{{ u.email }}</td>
+            <td data-label="Role"><span class="role-badge role-{{ u.role }}">{{ u.role.title() }}</span></td>
+            <td data-label="Active">
+              {% if u.active %}
+                <span class="badge badge-authorized">Active</span>
+              {% else %}
+                <span class="badge badge-blocked">Inactive</span>
+              {% endif %}
+            </td>
           </tr>
           {% endfor %}
         </tbody>

@@ -5,33 +5,36 @@
 {% block content %}
 <div class="section-card">
   <div class="card-header">
-    <h2 class="card-title">My Entry/Exit History</h2>
+    <div>
+      <h2 class="card-title">Entry history</h2>
+      <div class="card-subtitle">Recent records for your registered vehicles.</div>
+    </div>
   </div>
-  <div class="table-wrapper">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Date & Time</th>
-          <th>Plate</th>
-          <th>Confidence</th>
-          <th>Status</th>
-          <th>Gate Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for log in logs %}
-        <tr>
-          <td class="text-sm text-muted">{{ log.timestamp.strftime('%d %b %Y, %I:%M %p') if log.timestamp else '-' }}</td>
-          <td><strong class="plate-tag">{{ log.normalized_plate or '-' }}</strong></td>
-          <td class="text-sm">{{ '%.1f'|format(log.confidence) }}%</td>
-          <td><span class="badge badge-{{ log.status }}">{{ log.status_label }}</span></td>
-          <td class="text-sm">{{ log.gate_action or '-' }}</td>
-        </tr>
-        {% else %}
-        <tr><td colspan="5" class="text-center text-muted">No entry history found.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+
+  {% if logs %}
+    <div class="timeline" role="list" aria-label="Entry history">
+      {% for log in logs %}
+      <div class="timeline-item" role="listitem">
+        <div class="timeline-dot" aria-hidden="true"></div>
+        <div class="timeline-content">
+          <div class="timeline-top">
+            <span class="plate-tag">{{ log.normalized_plate or '-' }}</span>
+            <span class="badge badge-{{ log.status }}">{{ log.status_label }}</span>
+          </div>
+          <div class="timeline-meta">
+            <span>{{ log.timestamp.strftime('%d %b %Y, %I:%M %p') if log.timestamp else '-' }}</span>
+            <span>{{ '%.1f'|format(log.confidence) }}% confidence</span>
+            <span>{{ log.gate_action or 'Gate action unavailable' }}</span>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-title">No history yet</div>
+      <div class="text-muted">When vehicles enter the society, you will see updates here.</div>
+    </div>
+  {% endif %}
 </div>
 {% endblock %}

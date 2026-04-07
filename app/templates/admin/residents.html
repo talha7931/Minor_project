@@ -5,8 +5,11 @@
 {% block content %}
 <div class="section-card">
   <div class="card-header">
-    <h2 class="card-title">All Residents</h2>
-    <a href="{{ url_for('admin.add_resident') }}" class="btn btn-primary btn-sm">+ Add Resident</a>
+    <div>
+      <h2 class="card-title">Residents</h2>
+      <div class="card-subtitle">Manage citizen accounts and access.</div>
+    </div>
+    <a href="{{ url_for('admin.add_resident') }}" class="btn btn-primary btn-sm">Add resident</a>
   </div>
   <div class="table-wrapper">
     <table class="data-table">
@@ -24,19 +27,19 @@
       <tbody>
         {% for user in users %}
         <tr class="{{ 'row-inactive' if not user.active }}">
-          <td>{{ user.name }}</td>
-          <td class="text-muted text-sm">{{ user.email }}</td>
-          <td>{{ user.resident_profile.flat_no if user.resident_profile else '-' }}</td>
-          <td class="text-sm">{{ user.resident_profile.phone if user.resident_profile else '-' }}</td>
-          <td><span class="role-badge role-{{ user.role }}">{{ user.role.title() }}</span></td>
-          <td>
+          <td data-label="Name">{{ user.name }}</td>
+          <td data-label="Email" class="text-muted text-sm">{{ user.email }}</td>
+          <td data-label="Flat">{{ user.resident_profile.flat_no if user.resident_profile else '-' }}</td>
+          <td data-label="Phone" class="text-sm">{{ user.resident_profile.phone if user.resident_profile else '-' }}</td>
+          <td data-label="Role"><span class="role-badge role-{{ user.role }}">{{ user.role.title() }}</span></td>
+          <td data-label="Status">
             {% if user.active %}
               <span class="badge badge-authorized">Active</span>
             {% else %}
               <span class="badge badge-blocked">Inactive</span>
             {% endif %}
           </td>
-          <td>
+          <td data-label="Actions">
             <a href="{{ url_for('admin.toggle_resident', user_id=user.id) }}"
                class="btn btn-xs {{ 'btn-warning' if user.active else 'btn-success' }}"
                onclick="return confirm('Toggle user status?')">

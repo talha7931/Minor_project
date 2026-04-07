@@ -5,7 +5,10 @@
 {% block content %}
 <div class="section-card">
   <div class="card-header">
-    <h2 class="card-title">All Alerts</h2>
+    <div>
+      <h2 class="card-title">All alerts</h2>
+      <div class="card-subtitle">Review active issues and resolve them quickly.</div>
+    </div>
   </div>
   <div class="table-wrapper">
     <table class="data-table">
@@ -23,21 +26,21 @@
       <tbody>
         {% for alert in alerts %}
         <tr class="{{ 'row-inactive' if alert.resolved }}">
-          <td class="text-sm text-muted">{{ alert.created_at.strftime('%d %b %H:%M') }}</td>
-          <td class="text-sm">{{ alert.type.replace('_', ' ').title() }}</td>
-          <td>
+          <td data-label="Time" class="text-sm text-muted">{{ alert.created_at.strftime('%d %b %H:%M') }}</td>
+          <td data-label="Type" class="text-sm">{{ alert.type.replace('_', ' ').title() }}</td>
+          <td data-label="Severity">
             <span class="badge severity-{{ alert.severity }}">{{ alert.severity.title() }}</span>
           </td>
-          <td><strong class="plate-tag">{{ alert.related_plate or '-' }}</strong></td>
-          <td class="text-sm">{{ alert.message }}</td>
-          <td>
+          <td data-label="Plate"><strong class="plate-tag">{{ alert.related_plate or '-' }}</strong></td>
+          <td data-label="Message" class="text-sm">{{ alert.message }}</td>
+          <td data-label="Status">
             {% if alert.resolved %}
               <span class="badge badge-authorized">Resolved</span>
             {% else %}
               <span class="badge badge-blocked">Active</span>
             {% endif %}
           </td>
-          <td>
+          <td data-label="Actions">
             {% if not alert.resolved %}
             <a href="{{ url_for('admin.resolve_alert_route', alert_id=alert.id) }}"
                class="btn btn-xs btn-success">Resolve</a>
