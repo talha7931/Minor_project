@@ -8,8 +8,15 @@ BASE_DIR = Path(__file__).parent.parent
 class Config:
     """Base configuration."""
     SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
-    # Always use SQLite for this project (ignores Replit's PostgreSQL DATABASE_URL)
-    SQLALCHEMY_DATABASE_URI = f'sqlite:///{BASE_DIR}/instance/gate_system.db'
+    # Use DATABASE_URL from .env or fallback to SQLite
+    db_url = os.environ.get('DATABASE_URL', f'sqlite:///{BASE_DIR}/instance/gate_system.db')
+    if db_url:
+        if db_url.startswith("postgres://"):
+            db_url = db_url.replace("postgres://", "postgresql+pg8000://", 1)
+        elif db_url.startswith("postgresql://"):
+            db_url = db_url.replace("postgresql://", "postgresql+pg8000://", 1)
+    
+    SQLALCHEMY_DATABASE_URI = db_url
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # Camera settings
