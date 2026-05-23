@@ -1,5 +1,5 @@
 """
-Seed script — populates the database with demo data.
+Seed script — populates both SQLite and Supabase database with clean demo data.
 Run: python seed.py
 """
 import os
@@ -17,44 +17,55 @@ from app.models.alert import Alert
 from app.models.camera_config import CameraConfig
 from app.models.system_setting import SystemSetting
 
+from app.services.auth_service import create_user
+from app.services.vehicle_service import add_vehicle
+
 
 def seed():
     app = create_app()
     with app.app_context():
-        print('Dropping and recreating tables...')
+        print('Dropping and recreating local tables...')
         db.drop_all()
         db.create_all()
 
         # ---- Admin user ----
-        admin = User(name='Admin User', email='admin@gate.com', role='admin')
-        admin.set_password('Admin@123')
-        db.session.add(admin)
+        print('Creating Admin...')
+        admin = create_user(name='Admin User', email='admin@gate.com', password='Admin@123', role='admin')
 
         # ---- Security user ----
-        guard = User(name='Gate Guard', email='guard@gate.com', role='security')
-        guard.set_password('Guard@123')
-        db.session.add(guard)
-
-        db.session.flush()
+        print('Creating Security Guard...')
+        guard = create_user(name='Gate Guard', email='guard@gate.com', password='Guard@123', role='security')
 
         # ---- Resident 1 ----
-        r1 = User(name='Ravi Sharma', email='resident1@gate.com', role='resident')
-        r1.set_password('Res@1234')
-        db.session.add(r1)
-        db.session.flush()
-        p1 = ResidentProfile(user_id=r1.id, flat_no='A-101', phone='+91 98765 43210')
-        db.session.add(p1)
-        db.session.flush()
+        print('Creating Resident Ravi Sharma...')
+        r1 = create_user(
+            name='Ravi Sharma', 
+            email='resident1@gate.com', 
+            password='Res@1234', 
+            role='resident', 
+            flat_no='A-101', 
+            phone='+91 98765 43210'
+        )
+        p1 = ResidentProfile.query.filter_by(user_id=r1.id).first()
 
-        v1 = Vehicle(resident_id=p1.id, plate_number='MH12AB1234',
-                     vehicle_type='car', color='White', brand='Honda City',
-                     authorized=True, blacklisted=False)
-        v2 = Vehicle(resident_id=p1.id, plate_number='MH12CD5678',
-                     vehicle_type='bike', color='Black', brand='Royal Enfield',
-                     authorized=True, blacklisted=False)
-        db.session.add_all([v1, v2])
+        print('Registering vehicles for Ravi Sharma...')
+        v1 = add_vehicle(resident_id=p1.id, plate_number='MH12AB1234', vehicle_type='car', color='White', brand='Honda City')
+        v2 = add_vehicle(resident_id=p1.id, plate_number='MH12CD5678', vehicle_type='bike', color='Black', brand='Royal Enfield')
 
+        # ---- Resident 2 (Mohammad Talha) ----
+        print('Creating Resident Mohammad Talha...')
+        r2 = create_user(
+            name='Mohammad Talha',
+            email='smohammadtalha0@gmail.com',
+            password='Res@5678',
+            role='resident',
+            flat_no='B-104',
+            phone='+91 8856932785'
+        )
+        p2 = ResidentProfile.query.filter_by(user_id=r2.id).first()
 
+        print('Registering Himalayan 450 for Mohammad Talha...')
+        v3 = add_vehicle(resident_id=p2.id, plate_number='MH12AB0001', vehicle_type='bike', color='White', brand='Royal Enfield Himalayan 450')
 
         # ---- Camera config ----
         cam = CameraConfig(source_type='upload', resolution_w=640, resolution_h=480,
@@ -72,7 +83,7 @@ def seed():
         db.session.add_all(settings)
 
         db.session.commit()
-        print('\nDemo data seeded successfully!')
+        print('\nDemo data seeded successfully across both SQLite and Supabase!')
         print('\n--- Demo Credentials ---')
         print('Admin:     admin@gate.com    / Admin@123')
         print('Security:  guard@gate.com    / Guard@123')

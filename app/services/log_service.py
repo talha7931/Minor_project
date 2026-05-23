@@ -28,7 +28,83 @@ def create_log(plate_text: str, normalized_plate: str, confidence: float,
     return log
 
 
+class SupabaseEntryLog:
+    """Helper wrapper to map Supabase entry logs to the local Flask EntryLog interface."""
+    def __init__(self, data):
+        self.id = data.get('id', '')
+        
+        # Parse Supabase timestamp into standard Python datetime object
+        scanned_at = data.get('scanned_at')
+        if scanned_at:
+            try:
+                # Strip timezone suffix to work with standard datetime.fromisoformat
+                clean_ts = scanned_at.split('+')[0].split('Z')[0]
+                self.timestamp = datetime.fromisoformat(clean_ts)
+            except Exception:
+                self.timestamp = datetime.utcnow()
+        else:
+            self.timestamp = datetime.utcnow()
+            
+        self.plate_text = data.get('plate_number_raw', '')
+        self.normalized_plate = data.get('plate_number_normalized', '')
+        self.confidence = float(data.get('ocr_confidence', 0.0))
+        self.snapshot_path = data.get('snapshot_url', '')
+        
+        # Map Supabase decisions to local status
+        decision = data.get('decision', 'unknown')
+        status_map = {
+            'authorized': 'authorized',
+            'visitor_allowed': 'visitor',
+            'blacklisted': 'blocked',
+            'denied': 'blocked',
+            'pending': 'unknown',
+            'unknown': 'unknown'
+        }
+        self.status = status_map.get(decision, 'unknown')
+        self.source = data.get('source', 'camera')
+        self.gate_action = 'open' if self.status in ['authorized', 'visitor'] else 'none'
+        self.notes = data.get('reason', '')
+        
+    @property
+    def status_label(self):
+        labels = {
+            'authorized': 'Authorized',
+            'visitor': 'Visitor',
+            'blocked': 'Blocked',
+            'unknown': 'Unknown',
+            'manual_allow': 'Manual Allow',
+            'manual_deny': 'Manual Deny',
+        }
+        return labels.get(self.status, self.status.title())
+
+
 def get_recent_logs(limit=20):
+    """Retrieve recent plate scan entries directly from Supabase, falling back to SQLite if offline."""
+    import os
+    import requests
+    
+    supabase_url = os.environ.get('SUPABASE_URL', 'https://miqdestfirvcfmqlclqc.supabase.co')
+    supabase_key = os.environ.get('SUPABASE_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1pcWRlc3RmaXJ2Y2ZtcWxjbHFjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTcwMzQ3MCwiZXhwIjoyMDkxMjc5NDcwfQ.TxNsVFMXAGdAj7HNlJTL6LrGcFyV-TcFo3i7vHA-XmU')
+    
+    headers = {
+        "apikey": supabase_key,
+        "Authorization": f"Bearer {supabase_key}",
+        "Content-Type": "application/json"
+    }
+    
+    try:
+        # Query recent scans from Supabase ordered by scanned_at descending
+        r = requests.get(
+            f"{supabase_url}/rest/v1/entry_logs?order=scanned_at.desc&limit={limit}",
+            headers=headers,
+            timeout=3
+        )
+        if r.status_code == 200:
+            return [SupabaseEntryLog(row) for row in r.json()]
+    except Exception as e:
+        print(f"Supabase recent logs fetch error (falling back to local SQLite): {e}")
+        
+    # Local fallback
     return EntryLog.query.order_by(EntryLog.timestamp.desc()).limit(limit).all()
 
 

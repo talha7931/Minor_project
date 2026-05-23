@@ -55,16 +55,20 @@ def add_resident():
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
         email = request.form.get('email', '').strip()
-        password = request.form.get('password', '')
         flat_no = request.form.get('flat_no', '').strip()
         phone = request.form.get('phone', '').strip()
-        if not all([name, email, password, flat_no]):
-            flash('All fields are required.', 'danger')
+        
+        # Auto-generate password based on name (e.g. "Aarav@123")
+        first_name = name.split()[0].title() if name else 'Resident'
+        password = f"{first_name}@123"
+        
+        if not all([name, email, flat_no]):
+            flash('Name, Email, and Flat Number are required.', 'danger')
         elif User.query.filter_by(email=email.lower()).first():
             flash('Email already in use.', 'danger')
         else:
             create_user(name, email, password, role='resident', flat_no=flat_no, phone=phone)
-            flash(f'Resident {name} added successfully.', 'success')
+            flash(f'Resident {name} added successfully! Temporary Password: {password}', 'success')
             return redirect(url_for('admin.residents'))
     return render_template('admin/add_resident.html')
 
